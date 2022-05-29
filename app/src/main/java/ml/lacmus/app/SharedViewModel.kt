@@ -4,6 +4,7 @@ import android.content.ContentResolver
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Rect
+import android.graphics.RectF
 import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.*
@@ -13,7 +14,7 @@ import kotlinx.coroutines.launch
 import ml.lacmus.app.data.DronePhoto
 import ml.lacmus.app.data.State
 import ml.lacmus.app.ml.Detector
-import ml.lacmus.app.ml.TFLiteAPIModel
+import ml.lacmus.app.ml.TFLiteObjectDetectionAPIModel
 import java.lang.Exception
 import java.lang.IllegalArgumentException
 
@@ -29,7 +30,7 @@ class SharedViewModel(private val application: LacmusApplication): ViewModel() {
         detectWithCoroutine(photoList)
     }
 
-    private fun updatePhotoState(index: Int, bboxes: List<Rect>) {
+    private fun updatePhotoState(index: Int, bboxes: List<RectF>) {
         updatedIndex.postValue(index)
         if (bboxes.isNotEmpty()){
             _photos.value?.get(index)?.state = State.HasPedestrian
@@ -57,8 +58,8 @@ class SharedViewModel(private val application: LacmusApplication): ViewModel() {
         }
     }
 
-    private fun detectBoxes(bigBitmap: Bitmap, detector: Detector): List<Rect>{
-        val bboxes = mutableListOf<Rect>()
+    private fun detectBoxes(bigBitmap: Bitmap, detector: Detector): List<RectF>{
+        val bboxes = mutableListOf<RectF>()
         val scaledBitmap = Bitmap.createScaledBitmap(
             bigBitmap,
             NUM_CROPS_W * CROP_SIZE,
@@ -75,13 +76,15 @@ class SharedViewModel(private val application: LacmusApplication): ViewModel() {
                     CROP_SIZE,
                     CROP_SIZE)
                 Log.d(TAG, "Done cropping, Start detection: ${System.currentTimeMillis() - t0} ms")
-                val result = detector.recognizeImage(cropBmp)
-                if (result.locations.isNotEmpty()){
-                    for (loc in result.locations){
-                        bboxes.add(Rect(loc.left + w * CROP_SIZE,
-                            loc.top + h * CROP_SIZE,
-                            loc.right + w * CROP_SIZE,
-                            loc.bottom + h * CROP_SIZE))
+                val recognitions = detector.recognizeImage(cropBmp)
+                if (recognitions.isNotEmpty()){
+                    for (rec in recognitions){
+                        val newBox = RectF(rec.location)
+                        newBox.offset(
+                            (w * CROP_SIZE).toFloat(),
+                            (h * CROP_SIZE).toFloat()
+                        )
+                        bboxes.add(newBox)
                     }
                 }
                 Log.d(TAG, "Done detection: ${System.currentTimeMillis() - t0} ms")
@@ -91,9 +94,11 @@ class SharedViewModel(private val application: LacmusApplication): ViewModel() {
     }
 
     private fun getDetector(): Detector {
-        return TFLiteAPIModel.create(
+        Log.d(TAG, "Get detector: $MODEL_FILE")
+        return TFLiteObjectDetectionAPIModel.create(
             application,
             MODEL_FILE,
+            LABEL_FILE,
             MODEL_INPUT_SIZE,
             IS_MODEL_QUANTIZED
         )

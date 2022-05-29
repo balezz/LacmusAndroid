@@ -1,9 +1,9 @@
 package ml.lacmus.app.data
 
-import android.graphics.Rect
+import android.graphics.RectF
 
 data class DronePhoto(
     val uri: String,
     var state: State,
-    var bboxes: List<Rect>
+    var bboxes: List<RectF>
 )
