@@ -57,8 +57,9 @@ class FullScreenPhotoFragment : Fragment() {
         val bboxes = dronePhoto.bboxes
         if (!bboxes.isNullOrEmpty()) {
             val paint = Paint()
-            paint.color = Color.GREEN
+            paint.color = Color.RED
             paint.style = Paint.Style.STROKE
+            paint.strokeWidth = 3f
             for (bb in bboxes){
                 canvas.drawRect(bb, paint)
             }
