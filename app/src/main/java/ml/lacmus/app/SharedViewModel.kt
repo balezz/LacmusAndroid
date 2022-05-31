@@ -3,12 +3,10 @@ package ml.lacmus.app
 import android.content.ContentResolver
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.graphics.Rect
 import android.graphics.RectF
 import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.*
-import androidx.work.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import ml.lacmus.app.data.DronePhoto
@@ -77,8 +75,8 @@ class SharedViewModel(private val application: LacmusApplication): ViewModel() {
                     CROP_SIZE)
                 Log.d(TAG, "Done cropping, Start detection: ${System.currentTimeMillis() - t0} ms")
                 val recognitions = detector.recognizeImage(cropBmp)
-                if (recognitions.isNotEmpty()){
-                    for (rec in recognitions){
+                for (rec in recognitions){
+                    if (rec.confidence > CONFIDENCE_THRESHOLD) {
                         val newBox = RectF(rec.location)
                         newBox.offset(
                             (w * CROP_SIZE).toFloat(),
@@ -87,6 +85,7 @@ class SharedViewModel(private val application: LacmusApplication): ViewModel() {
                         bboxes.add(newBox)
                     }
                 }
+
                 Log.d(TAG, "Done detection: ${System.currentTimeMillis() - t0} ms")
             }
         }

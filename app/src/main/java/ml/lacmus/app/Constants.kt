@@ -11,5 +11,5 @@ const val CROP_SIZE = 320
 
 const val MODEL_INPUT_SIZE = CROP_SIZE
 const val IS_MODEL_QUANTIZED = true
-const val MODEL_FILE = "detector_B0.tflite"
+const val MODEL_FILE = "effdetB0.tflite"
 const val LABEL_FILE = "labelmap.txt"
