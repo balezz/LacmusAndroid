@@ -10,6 +10,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels
 import ml.lacmus.app.LacmusApplication
 import ml.lacmus.app.SharedViewModel
 import ml.lacmus.app.databinding.FragmentGridBinding
@@ -22,7 +23,7 @@ class PhotosGridFragment : Fragment() {
     private var _binding: FragmentGridBinding? = null
     private val binding get() = _binding!!
 
-    private val sViewModel: SharedViewModel by activityViewModels {
+    private val sViewModel: SharedViewModel by viewModels {
         SharedViewModel.SharedViewModelFactory(activity?.application!! as LacmusApplication)
     }
 
@@ -77,14 +78,14 @@ class PhotosGridFragment : Fragment() {
             } else if (it.data != null) {
                 uriList.add(it.data!!)
             }
-            Log.d(TAG, "$uriList")
+            Log.d(TAG, "Get from gallery uri list: $uriList")
             sViewModel.postPhotos(uriList)
         }
     }
 
 
     companion object {
-        const val TAG = "FirstFragment"
+        const val TAG = "PhotosGridFragment"
     }
 
 }
