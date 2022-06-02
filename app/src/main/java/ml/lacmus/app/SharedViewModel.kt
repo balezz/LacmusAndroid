@@ -25,7 +25,13 @@ class SharedViewModel(private val application: LacmusApplication): ViewModel() {
         val photoList = uriList.map { DronePhoto(it.toString(), State.Unrecognized, listOf()) }
         Log.d(TAG, "Photo list size: ${photoList.size}")
         _photos.value = photoList
+        Log.d(TAG, photos.toString() + this.toString())
         detectWithCoroutine(photoList)
+    }
+
+    fun getPhoto(index: Int): DronePhoto {
+        Log.d(TAG, photos.toString()+ this.toString())
+        return photos.value?.get(index)!!
     }
 
     private fun updatePhotoState(index: Int, bboxes: List<RectF>) {
@@ -121,15 +127,27 @@ class SharedViewModel(private val application: LacmusApplication): ViewModel() {
         : ViewModelProvider.Factory {
         override fun <T : ViewModel?> create(modelClass: Class<T>): T {
             return if (modelClass.isAssignableFrom(SharedViewModel::class.java)) {
-                SharedViewModel(application) as T
+                SharedViewModel.getInstance(application) as T
             } else {
                 throw IllegalArgumentException("Unknown ViewModel class")
+            }
+        }
+        companion object {
+            private var instance: SharedViewModelFactory? = null
+            fun getInstance(application: LacmusApplication){
+                instance ?: synchronized(SharedViewModelFactory::class.java) {
+                    instance ?: SharedViewModelFactory(application).also { instance = it }
+                }
             }
         }
     }
 
     companion object{
         private const val TAG = "SharedViewModel"
+        private var instance: SharedViewModel? = null
+        fun getInstance(application: LacmusApplication) = instance ?: synchronized(SharedViewModel::class.java){
+            instance ?: SharedViewModel(application).also { instance = it }
+        }
     }
 
 }

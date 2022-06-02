@@ -1,5 +1,6 @@
 package ml.lacmus.app.ui
 
+import android.content.Intent
 import android.graphics.*
 import android.util.Log
 import android.view.LayoutInflater
@@ -8,6 +9,7 @@ import androidx.navigation.findNavController
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import ml.lacmus.app.KEY_IMAGE_POSITION
 import ml.lacmus.app.TAG
 import ml.lacmus.app.data.DronePhoto
 import ml.lacmus.app.data.State
@@ -43,9 +45,10 @@ class PhotosGridAdapter : ListAdapter<DronePhoto,
         Log.d(TAG, "Adapter: ${dronePhoto.uri}")
         holder.bind(dronePhoto)
         holder.itemView.setOnClickListener{
-            val action = PhotosGridFragmentDirections.actionGridFragmentToPhotoFragment(
-                imagePosition = position)
-            holder.itemView.findNavController().navigate(action)
+            val context = it.context
+            val intent = Intent(context, ScreenSlidePagerActivity::class.java)
+            intent.putExtra(KEY_IMAGE_POSITION, position)
+            context.startActivity(intent)
         }
     }
 
@@ -59,5 +62,7 @@ class PhotosGridAdapter : ListAdapter<DronePhoto,
         }
 
     }
+
+
 
 }
