@@ -3,6 +3,7 @@ package ml.lacmus.app.ui
 import android.graphics.*
 import android.net.Uri
 import android.os.Bundle
+import android.os.Trace
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -43,26 +44,32 @@ class ScreenSlidePageFragment : Fragment() {
 
     private fun drawBoxes(dronePhoto: DronePhoto) {
         Log.d(TAG, "Draw boxes on Photo: $dronePhoto")
+        Trace.beginSection("Draw bounding boxes")
         val pfd = requireContext().contentResolver.openFileDescriptor(Uri.parse(dronePhoto.uri), "r")
-        val bmp = BitmapFactory.decodeFileDescriptor(pfd?.fileDescriptor)
-        val mutableBmp = Bitmap.createScaledBitmap(
-            bmp,
-            NUM_CROPS_W * CROP_SIZE,
-            NUM_CROPS_H * CROP_SIZE,
-            false)
+        val options = BitmapFactory.Options()
+        options.inMutable = true
+        val mutableBmp = BitmapFactory.decodeFileDescriptor(pfd?.fileDescriptor, null, options)
+        val xScale = mutableBmp.width.toFloat() / (NUM_CROPS_W * CROP_SIZE)
+        val yScale = mutableBmp.height.toFloat() / (NUM_CROPS_H * CROP_SIZE)
         val canvas = Canvas(mutableBmp)
-        val bboxes = dronePhoto?.bboxes
-        if (!bboxes.isNullOrEmpty()) {
+        if (!dronePhoto.bboxes.isNullOrEmpty()) {
             val paint = Paint()
             paint.color = Color.RED
             paint.style = Paint.Style.STROKE
             paint.strokeWidth = 3f
-            for (bb in bboxes){
-                canvas.drawRect(bb, paint)
+            for (bb in dronePhoto.bboxes){
+                val scBox = RectF(
+                    bb.left*xScale,
+                    bb.top*yScale,
+                    bb.right*xScale,
+                    bb.bottom*yScale
+                )
+                canvas.drawRect(scBox, paint)
             }
         }
         binding.fullscreenContent.maxScale = 10f
         binding.fullscreenContent.setImage(ImageSource.bitmap(mutableBmp))
+        Trace.endSection()
     }
 
     companion object{

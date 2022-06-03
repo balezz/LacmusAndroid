@@ -5,6 +5,7 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.RectF
 import android.net.Uri
+import android.os.Trace
 import android.util.Log
 import androidx.lifecycle.*
 import kotlinx.coroutines.Dispatchers
@@ -22,7 +23,7 @@ class SharedViewModel(private val application: LacmusApplication): ViewModel() {
     val updatedIndex = MutableLiveData(-1)
 
     fun postPhotos(uriList: MutableList<Uri>) {
-        val photoList = uriList.map { DronePhoto(it.toString(), State.Unrecognized, listOf()) }
+        val photoList = uriList.map { DronePhoto(it.toString()) }
         Log.d(TAG, "Photo list size: ${photoList.size}")
         _photos.value = photoList
         Log.d(TAG, photos.toString() + this.toString())
@@ -61,6 +62,7 @@ class SharedViewModel(private val application: LacmusApplication): ViewModel() {
     }
 
     private fun detectBoxes(bigBitmap: Bitmap, detector: Detector): List<RectF>{
+        Trace.beginSection("Detect boxes on full image")
         val bboxes = mutableListOf<RectF>()
         val scaledBitmap = Bitmap.createScaledBitmap(
             bigBitmap,
@@ -71,13 +73,11 @@ class SharedViewModel(private val application: LacmusApplication): ViewModel() {
         for (h in 0 until NUM_CROPS_H){
             for (w in 0 until NUM_CROPS_W){
                 val t0 = System.currentTimeMillis()
-                Log.d(TAG, "Start cropping")
                 val cropBmp = Bitmap.createBitmap(scaledBitmap,
                     w * CROP_SIZE,
                     h * CROP_SIZE,
                     CROP_SIZE,
                     CROP_SIZE)
-                Log.d(TAG, "Done cropping, Start detection: ${System.currentTimeMillis() - t0} ms")
                 val recognitions = detector.recognizeImage(cropBmp)
                 for (rec in recognitions){
                     if (rec.confidence > CONFIDENCE_THRESHOLD) {
@@ -89,10 +89,10 @@ class SharedViewModel(private val application: LacmusApplication): ViewModel() {
                         bboxes.add(newBox)
                     }
                 }
-
-                Log.d(TAG, "Done detection: ${System.currentTimeMillis() - t0} ms")
+                Log.d(TAG, "Done crop detection: ${System.currentTimeMillis() - t0} ms")
             }
         }
+        Trace.endSection()
         return bboxes
     }
 

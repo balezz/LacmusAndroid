@@ -5,7 +5,6 @@ import android.graphics.*
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import androidx.navigation.findNavController
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -24,10 +23,17 @@ class PhotosGridAdapter : ListAdapter<DronePhoto,
         fun bind(dronePhoto: DronePhoto){
             binding.photo = dronePhoto
             binding.executePendingBindings()
-            if (dronePhoto.state == State.NoPedestrian)
-                binding.droneImage.setColorFilter(Color.LTGRAY, PorterDuff.Mode.LIGHTEN)
+            if (dronePhoto.state == State.Unrecognized) {
+//              binding.droneImage.setColorFilter(Color.GRAY, PorterDuff.Mode.LIGHTEN)
+                binding.imageFrame.background.setTint(Color.WHITE)
+            }
+            if (dronePhoto.state == State.NoPedestrian) {
+//              binding.droneImage.setColorFilter(Color.GRAY, PorterDuff.Mode.LIGHTEN)
+                binding.imageFrame.background.setTint(Color.GREEN)
+            }
             if (dronePhoto.state == State.HasPedestrian) {
-                binding.droneImage.setColorFilter(Color.GREEN, PorterDuff.Mode.LIGHTEN)
+                binding.imageFrame.background.setTint(Color.RED)
+//                binding.droneImage.setColorFilter(Color.RED, PorterDuff.Mode.LIGHTEN)
             }
         }
     }
@@ -59,7 +65,7 @@ class PhotosGridAdapter : ListAdapter<DronePhoto,
         }
 
         override fun areContentsTheSame(oldItem: DronePhoto, newItem: DronePhoto): Boolean {
-            return oldItem.uri == newItem.uri
+            return oldItem.bboxes == newItem.bboxes
         }
 
     }
