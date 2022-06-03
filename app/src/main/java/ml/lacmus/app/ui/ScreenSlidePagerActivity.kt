@@ -2,16 +2,14 @@ package ml.lacmus.app.ui
 
 import android.os.Bundle
 import android.util.Log
+import androidx.activity.viewModels
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
+import androidx.fragment.app.viewModels
 import androidx.viewpager2.adapter.FragmentStateAdapter
+import androidx.viewpager2.adapter.FragmentViewHolder
 import androidx.viewpager2.widget.ViewPager2
-import ml.lacmus.app.KEY_IMAGE_POSITION
-import ml.lacmus.app.R
-import ml.lacmus.app.TAG
-
-
-private const val NUM_PAGES = 5
+import ml.lacmus.app.*
 
 class ScreenSlidePagerActivity : FragmentActivity() {
 
@@ -20,6 +18,9 @@ class ScreenSlidePagerActivity : FragmentActivity() {
      * and next wizard steps.
      */
     private lateinit var viewPager: ViewPager2
+    private val sViewModel: SharedViewModel by viewModels {
+        SharedViewModel.SharedViewModelFactory(application!! as LacmusApplication)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -27,36 +28,28 @@ class ScreenSlidePagerActivity : FragmentActivity() {
         // Instantiate a ViewPager2 and a PagerAdapter.
         viewPager = findViewById(R.id.pager)
         val position = intent.getIntExtra(KEY_IMAGE_POSITION, 0)
-        viewPager.currentItem = position
+        Log.d(TAG, "Get position: $position")
         // The pager adapter, which provides the pages to the view pager widget.
         val pagerAdapter = ScreenSlidePagerAdapter(this)
         viewPager.adapter = pagerAdapter
+        viewPager.setCurrentItem(position, false)
     }
 
-    override fun onBackPressed() {
-        if (viewPager.currentItem == 0) {
-            // If the user is currently looking at the first step, allow the system to handle the
-            // Back button. This calls finish() on this activity and pops the back stack.
-            super.onBackPressed()
-        } else {
-            // Otherwise, select the previous step.
-            viewPager.currentItem = viewPager.currentItem - 1
-        }
-    }
-
-    /**
-     * A simple pager adapter that represents 5 ScreenSlidePageFragment objects, in
-     * sequence.
-     */
     private inner class ScreenSlidePagerAdapter(fa: FragmentActivity) : FragmentStateAdapter(fa) {
-        override fun getItemCount(): Int = NUM_PAGES
+        override fun getItemCount(): Int = sViewModel.photos.value?.size!!
+
+        override fun onBindViewHolder(
+            holder: FragmentViewHolder,
+            position: Int,
+            payloads: MutableList<Any>
+        ) {
+            super.onBindViewHolder(holder, position, payloads)
+        }
 
         override fun createFragment(position: Int): Fragment {
-          val fragment = ScreenSlidePageFragment()
-          val bundle = Bundle()
-          bundle.putInt(KEY_IMAGE_POSITION, position)
-          fragment.arguments = bundle
-          return fragment
+            val fragment = ScreenSlidePageFragment.create(position)
+            Log.d(TAG, "Tapped position: $position")
+            return fragment
         }
     }
 }

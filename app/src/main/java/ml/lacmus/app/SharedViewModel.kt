@@ -35,28 +35,26 @@ class SharedViewModel(private val application: LacmusApplication): ViewModel() {
     }
 
     private fun updatePhotoState(index: Int, bboxes: List<RectF>) {
-        updatedIndex.postValue(index)
         if (bboxes.isNotEmpty()){
-            _photos.value?.get(index)?.state = State.HasPedestrian
-            _photos.value?.get(index)?.bboxes = bboxes
+            _photos.value?.also {
+                it[index].state = State.HasPedestrian
+                it[index].bboxes = bboxes.toList()   // just create a copy
+            }
         }
         else
-            _photos.value?.get(index)?.state = State.NoPedestrian
+            _photos.value?.also {
+                 it[index].state = State.NoPedestrian
+            }
+        updatedIndex.postValue(index)
     }
 
     private fun  detectWithCoroutine(photos: List<DronePhoto>){
         viewModelScope.launch(Dispatchers.Default) {
             val detector = getDetector()
-            for ((itemChanged, photo) in photos.withIndex()) {
-                val uriString = photo.uri
-                val t0 = System.currentTimeMillis()
-//                Log.d(TAG, "Start worker")
+            for ((itemChanged, dronePhoto) in photos.withIndex()) {
+                val uriString = dronePhoto.uri
                 val bitmap = loadImage(uriString)
-
-//                Log.d(TAG, "Image loaded: ${System.currentTimeMillis() - t0}")
                 val bboxes = detectBoxes(bitmap, detector)
-//                Log.d(TAG, "Detection finished: ${System.currentTimeMillis() - t0} ms")
-
                 updatePhotoState(itemChanged, bboxes)
             }
         }

@@ -47,6 +47,7 @@ class PhotosGridAdapter : ListAdapter<DronePhoto,
         holder.itemView.setOnClickListener{
             val context = it.context
             val intent = Intent(context, ScreenSlidePagerActivity::class.java)
+            Log.d(TAG, "Put position: $position")
             intent.putExtra(KEY_IMAGE_POSITION, position)
             context.startActivity(intent)
         }

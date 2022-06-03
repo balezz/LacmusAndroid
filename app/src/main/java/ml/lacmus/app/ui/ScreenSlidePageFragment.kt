@@ -11,7 +11,10 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import com.davemorrissey.labs.subscaleview.ImageSource
 import ml.lacmus.app.*
+import ml.lacmus.app.data.DronePhoto
+import ml.lacmus.app.data.State
 import ml.lacmus.app.databinding.FragmentScreenSlidePageBinding
+import java.text.FieldPosition
 
 
 class ScreenSlidePageFragment : Fragment() {
@@ -28,17 +31,18 @@ class ScreenSlidePageFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentScreenSlidePageBinding.inflate(inflater, container, false)
+        val imagePosition = requireArguments().getInt(KEY_IMAGE_POSITION)
+        val dronePhoto = sViewModel.getPhoto(imagePosition)
+        if (dronePhoto.state == State.HasPedestrian){
+            drawBoxes(dronePhoto)
+        } else {
+            binding.fullscreenContent.setImage(ImageSource.uri(dronePhoto.uri))
+        }
         return binding.root
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        drawBoxes()
-    }
-
-    private fun drawBoxes() {
-        val imagePosition = requireArguments().getInt(KEY_IMAGE_POSITION, 0)
-        val dronePhoto = sViewModel.getPhoto(imagePosition)
-        Log.d(TAG, "Photo: $dronePhoto")
+    private fun drawBoxes(dronePhoto: DronePhoto) {
+        Log.d(TAG, "Draw boxes on Photo: $dronePhoto")
         val pfd = requireContext().contentResolver.openFileDescriptor(Uri.parse(dronePhoto.uri), "r")
         val bmp = BitmapFactory.decodeFileDescriptor(pfd?.fileDescriptor)
         val mutableBmp = Bitmap.createScaledBitmap(
@@ -59,6 +63,16 @@ class ScreenSlidePageFragment : Fragment() {
         }
         binding.fullscreenContent.maxScale = 10f
         binding.fullscreenContent.setImage(ImageSource.bitmap(mutableBmp))
+    }
+
+    companion object{
+        fun create(position: Int): ScreenSlidePageFragment {
+            val fragment = ScreenSlidePageFragment()
+            val bundle = Bundle()
+            bundle.putInt(KEY_IMAGE_POSITION, position)
+            fragment.arguments = bundle
+            return fragment
+        }
     }
 
 }
