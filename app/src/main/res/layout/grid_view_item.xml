@@ -9,13 +9,24 @@
             type="ml.lacmus.app.data.DronePhoto" />
     </data>
 
+    <FrameLayout
+        android:layout_width="wrap_content"
+        android:layout_height="128dp"
+        android:id="@+id/image_frame"
+        android:layout_margin="2dp"
+        android:background="@color/white">
+
     <ImageView
         android:id="@+id/drone_image"
-        android:layout_width="wrap_content"
-        android:layout_height="170dp"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         android:scaleType="fitXY"
         android:adjustViewBounds="true"
         android:padding="2dp"
+        android:contentDescription="@string/drone_photo_item"
         app:imageUri="@{photo.uri}"
         tools:src="@tools:sample/backgrounds/scenic"/>
+    </FrameLayout>
+
+
 </layout>

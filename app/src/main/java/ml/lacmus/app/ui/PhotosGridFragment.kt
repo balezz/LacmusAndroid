@@ -30,7 +30,7 @@ class PhotosGridFragment : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         _binding = FragmentGridBinding.inflate(inflater, container, false)
         binding.fab.setOnClickListener {
             dispatchOpenImagesIntent()
@@ -49,6 +49,11 @@ class PhotosGridFragment : Fragment() {
         sViewModel.updatedIndex.observe(viewLifecycleOwner){
             adapter.notifyItemChanged(it)
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        binding.photosGrid.adapter?.notifyDataSetChanged()
     }
 
     override fun onDestroyView() {
