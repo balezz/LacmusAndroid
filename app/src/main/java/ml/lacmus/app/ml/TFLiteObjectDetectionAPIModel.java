@@ -15,6 +15,9 @@ limitations under the License.
 
 package ml.lacmus.app.ml;
 
+import static ml.lacmus.app.ConstantsKt.CONFIDENCE_THRESHOLD;
+import static ml.lacmus.app.ConstantsKt.NUM_DETECTIONS;
+
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.os.Trace;
@@ -49,9 +52,6 @@ import org.tensorflow.lite.task.vision.detector.ObjectDetector.ObjectDetectorOpt
 public class TFLiteObjectDetectionAPIModel implements Detector {
   private static final String TAG = "TFLiteObjectDetectionAPIModelWithTaskApi";
 
-  /** Only return this many results. */
-  private static final int NUM_DETECTIONS = 1;
-
   private final MappedByteBuffer modelBuffer;
 
   /** An instance of the driver class to run model inference with Tensorflow Lite. */
@@ -68,23 +68,21 @@ public class TFLiteObjectDetectionAPIModel implements Detector {
    * href="https://github.com/tensorflow/examples/blob/master/lite/examples/object_detection/android/lib_interpreter/src/main/java/org/tensorflow/lite/examples/detection/tflite/TFLiteObjectDetectionAPIModel.java">lib_interpreter</a>.
    *
    * @param modelFilename The model file path relative to the assets folder
-   * @param labelFilename The label file path relative to the assets folder
-   * @param inputSize The size of image input
-   * @param isQuantized Boolean representing model is quantized or not
+   *
    */
   public static Detector create(
           final Context context,
-          final String modelFilename,
-          final String labelFilename,
-          final int inputSize,
-          final boolean isQuantized)
+          final String modelFilename)
           throws IOException {
     return new TFLiteObjectDetectionAPIModel(context, modelFilename);
   }
 
   private TFLiteObjectDetectionAPIModel(Context context, String modelFilename) throws IOException {
     modelBuffer = FileUtil.loadMappedFile(context, modelFilename);
-    optionsBuilder = ObjectDetectorOptions.builder().setMaxResults(NUM_DETECTIONS);
+    optionsBuilder = ObjectDetectorOptions
+            .builder()
+            .setMaxResults(NUM_DETECTIONS)
+            .setScoreThreshold(CONFIDENCE_THRESHOLD);
     objectDetector = ObjectDetector.createFromBufferAndOptions(modelBuffer, optionsBuilder.build());
   }
 

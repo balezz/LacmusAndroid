@@ -80,14 +80,12 @@ class SharedViewModel(private val application: LacmusApplication): ViewModel() {
                     CROP_SIZE)
                 val recognitions = detector.recognizeImage(cropBmp)
                 for (rec in recognitions){
-                    if (rec.confidence > CONFIDENCE_THRESHOLD) {
-                        val newBox = RectF(rec.location)
-                        newBox.offset(
-                            (w * CROP_SIZE).toFloat(),
-                            (h * CROP_SIZE).toFloat()
-                        )
-                        bboxes.add(newBox)
-                    }
+                    val newBox = RectF(rec.location)
+                    newBox.offset(
+                        (w * CROP_SIZE).toFloat(),
+                        (h * CROP_SIZE).toFloat()
+                    )
+                    bboxes.add(newBox)
                 }
                 Log.d(TAG, "Done crop detection: ${System.currentTimeMillis() - t0} ms")
             }
@@ -97,14 +95,10 @@ class SharedViewModel(private val application: LacmusApplication): ViewModel() {
     }
 
     private fun getDetector(): Detector {
-        Log.d(TAG, "Get detector: $MODEL_FILE")
-        return TFLiteObjectDetectionAPIModel.create(
-            application,
-            MODEL_FILE,
-            LABEL_FILE,
-            MODEL_INPUT_SIZE,
-            IS_MODEL_QUANTIZED
-        )
+        Log.d(TAG, "Get detector: $MODEL_FILE, " +
+                "threshold = $CONFIDENCE_THRESHOLD, " +
+                "input size = $MODEL_INPUT_SIZE")
+        return TFLiteObjectDetectionAPIModel.create(application, MODEL_FILE)
     }
 
     @Throws(Exception::class)
