@@ -18,15 +18,17 @@ import java.lang.Exception
 import java.lang.IllegalArgumentException
 
 class SharedViewModel(private val application: LacmusApplication): ViewModel() {
+    private var hideEmptyPhotosFlag = false
+    private var photoList = listOf<DronePhoto>()
     private val _photos = MutableLiveData<List<DronePhoto>>()
     val photos : LiveData<List<DronePhoto>> = _photos
     val updatedIndex = MutableLiveData(-1)
+    var detectionIsDone = false
 
     fun postPhotos(uriList: MutableList<Uri>) {
-        val photoList = uriList.map { DronePhoto(it.toString()) }
+        photoList = uriList.map { DronePhoto(it.toString()) }
         Log.d(TAG, "Photo list size: ${photoList.size}")
-        _photos.value = photoList
-        Log.d(TAG, photos.toString() + this.toString())
+        _photos.postValue(photoList.toList())                  // create copy
         detectWithCoroutine(photoList)
     }
 
@@ -37,28 +39,42 @@ class SharedViewModel(private val application: LacmusApplication): ViewModel() {
 
     private fun updatePhotoState(index: Int, bboxes: List<RectF>) {
         if (bboxes.isNotEmpty()){
-            _photos.value?.also {
-                it[index].state = State.HasPedestrian
-                it[index].bboxes = bboxes.toList()   // just create a copy
-            }
+            photoList[index].state = State.HasPedestrian
+            photoList[index].bboxes = bboxes.toList()   // just create a copy
         }
-        else
-            _photos.value?.also {
-                 it[index].state = State.NoPedestrian
-            }
+        else{
+            photoList[index].state = State.NoPedestrian
+        }
         updatedIndex.postValue(index)
+        _photos.postValue(photoList)
     }
 
     private fun  detectWithCoroutine(photos: List<DronePhoto>){
+        Log.d(TAG, "Start detection: $photos")
         viewModelScope.launch(Dispatchers.Default) {
             val detector = getDetector()
+            detectionIsDone = false
             for ((itemChanged, dronePhoto) in photos.withIndex()) {
                 val uriString = dronePhoto.uri
                 val bitmap = loadImage(uriString)
                 val bboxes = detectBoxes(bitmap, detector)
                 updatePhotoState(itemChanged, bboxes)
             }
+//            detector.close()
+            detectionIsDone = true
         }
+    }
+
+    fun showEmptyDronePhotos(){
+        hideEmptyPhotosFlag = false
+        _photos.postValue(photoList)
+    }
+
+    fun hideEmptyDronePhotos(){
+        hideEmptyPhotosFlag = true
+        photos.value?.let { photoList = it.toList() }
+        val hiddenPhotoList = _photos.value?.filter { it.state != State.NoPedestrian }
+        _photos.postValue(hiddenPhotoList)
     }
 
     private fun detectBoxes(bigBitmap: Bitmap, detector: Detector): List<RectF>{
@@ -98,7 +114,7 @@ class SharedViewModel(private val application: LacmusApplication): ViewModel() {
         Log.d(TAG, "Get detector: $MODEL_FILE, " +
                 "threshold = $CONFIDENCE_THRESHOLD, " +
                 "input size = $MODEL_INPUT_SIZE")
-        return TFLiteObjectDetectionAPIModel.create(application, MODEL_FILE)
+        return TFLiteObjectDetectionAPIModel.getInstance(application, MODEL_FILE)
     }
 
     @Throws(Exception::class)

@@ -52,6 +52,8 @@ import org.tensorflow.lite.task.vision.detector.ObjectDetector.ObjectDetectorOpt
 public class TFLiteObjectDetectionAPIModel implements Detector {
   private static final String TAG = "TFLiteObjectDetectionAPIModelWithTaskApi";
 
+  private static TFLiteObjectDetectionAPIModel instance;
+
   private final MappedByteBuffer modelBuffer;
 
   /** An instance of the driver class to run model inference with Tensorflow Lite. */
@@ -70,11 +72,14 @@ public class TFLiteObjectDetectionAPIModel implements Detector {
    * @param modelFilename The model file path relative to the assets folder
    *
    */
-  public static Detector create(
+  public static Detector getInstance(
           final Context context,
           final String modelFilename)
           throws IOException {
-    return new TFLiteObjectDetectionAPIModel(context, modelFilename);
+    if (instance == null){
+      instance = new TFLiteObjectDetectionAPIModel(context, modelFilename);
+    }
+    return instance;
   }
 
   private TFLiteObjectDetectionAPIModel(Context context, String modelFilename) throws IOException {
