@@ -5,9 +5,7 @@ import android.util.Log
 import androidx.activity.viewModels
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
-import androidx.fragment.app.viewModels
 import androidx.viewpager2.adapter.FragmentStateAdapter
-import androidx.viewpager2.adapter.FragmentViewHolder
 import androidx.viewpager2.widget.ViewPager2
 import ml.lacmus.app.*
 
@@ -37,14 +35,6 @@ class ScreenSlidePagerActivity : FragmentActivity() {
 
     private inner class ScreenSlidePagerAdapter(fa: FragmentActivity) : FragmentStateAdapter(fa) {
         override fun getItemCount(): Int = sViewModel.photos.value?.size!!
-
-        override fun onBindViewHolder(
-            holder: FragmentViewHolder,
-            position: Int,
-            payloads: MutableList<Any>
-        ) {
-            super.onBindViewHolder(holder, position, payloads)
-        }
 
         override fun createFragment(position: Int): Fragment {
             val fragment = ScreenSlidePageFragment.create(position)

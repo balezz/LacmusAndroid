@@ -1,15 +1,13 @@
 package ml.lacmus.app.ui
 
 import android.content.Intent
+import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
+import android.view.*
 import androidx.fragment.app.Fragment
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import ml.lacmus.app.LacmusApplication
 import ml.lacmus.app.SharedViewModel
@@ -53,6 +51,7 @@ class PhotosGridFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
+        binding.photosGrid.background.setTint(Color.WHITE)
         binding.photosGrid.adapter?.notifyDataSetChanged()
     }
 

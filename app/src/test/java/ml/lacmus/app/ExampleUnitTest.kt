@@ -1,5 +1,7 @@
 package ml.lacmus.app
 
+import ml.lacmus.app.data.DronePhoto
+import ml.lacmus.app.data.State
 import org.junit.Test
 
 import org.junit.Assert.*
@@ -11,7 +13,15 @@ import org.junit.Assert.*
  */
 class ExampleUnitTest {
     @Test
-    fun addition_isCorrect() {
-        assertEquals(4, 2 + 2)
+    fun update_map_isCorrect() {
+        val droneUris = listOf("uri1", "uri2", "uri3")
+        val keys = droneUris.indices
+        val values = droneUris.map { DronePhoto(it) }
+        val dronePhotosMap = keys.zip(values).toMap()
+
+        val dronePhoto = dronePhotosMap[1]
+        dronePhoto?.state ?: State.NoPedestrian
+
+        assertEquals(dronePhotosMap[1]?.state, dronePhoto?.state)
     }
 }

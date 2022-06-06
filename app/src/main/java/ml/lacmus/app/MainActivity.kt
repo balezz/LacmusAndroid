@@ -1,29 +1,44 @@
 package ml.lacmus.app
 
-import android.os.Bundle
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.navigation.ui.setupActionBarWithNavController
-import androidx.navigation.NavController
-import androidx.navigation.fragment.NavHostFragment
 
-// todo
-//  * image list support
-//  * fix detection performance issue
 
 class MainActivity : AppCompatActivity(R.layout.activity_main) {
-
-    private lateinit var navController: NavController
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        val navHostFragment = supportFragmentManager
-            .findFragmentById(R.id.nav_host_fragment) as NavHostFragment
-        navController = navHostFragment.navController
-        setupActionBarWithNavController(navController)
+    private val sViewModel: SharedViewModel by viewModels {
+        SharedViewModel.SharedViewModelFactory(application!! as LacmusApplication)
     }
 
-    override fun onSupportNavigateUp(): Boolean {
-        return navController.navigateUp() || super.onSupportNavigateUp()
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        val inflater: MenuInflater = menuInflater
+        inflater.inflate(R.menu.menu_main, menu)
+        return true
     }
 
+    override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
+        if (menu != null) {
+            val itemHide = menu.findItem(R.id.action_hide_empty)
+            itemHide.isEnabled = sViewModel.detectionIsDone
+        }
+        return super.onPrepareOptionsMenu(menu)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId){
+            R.id.action_hide_empty -> {
+                if (item.isChecked) {
+                    item.isChecked = false
+                    sViewModel.showEmptyDronePhotos()
+                } else{
+                    item.isChecked = true
+                    sViewModel.hideEmptyDronePhotos()
+                }
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
+    }
 }
