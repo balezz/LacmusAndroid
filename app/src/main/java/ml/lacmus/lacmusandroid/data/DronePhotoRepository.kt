@@ -5,35 +5,50 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.RectF
 import android.net.Uri
+import androidx.databinding.ObservableArrayList
+import androidx.databinding.ObservableList
+import androidx.databinding.ObservableList.OnListChangedCallback
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import ml.lacmus.lacmusandroid.LacmusApplication
 import java.lang.Exception
+import java.util.*
 
 
 class DronePhotoRepository(private val application: LacmusApplication) {
-    private var dronePhotos: List<DronePhoto> = listOf()
+    private var _dronePhotos = MutableLiveData<List<DronePhoto>>()
+    val dronePhotos : LiveData<List<DronePhoto>> = _dronePhotos
 
 
     fun setDronePhotos(newDronePhotos: List<DronePhoto>){
-        dronePhotos = newDronePhotos
+        _dronePhotos.postValue(newDronePhotos)
     }
 
-    fun getDronePhotos(): List<DronePhoto>{
-        return dronePhotos
+    fun getDronePhotos(): List<DronePhoto>? {
+        return dronePhotos.value
     }
 
-    fun getPhoto(index: Int): DronePhoto {
-        return dronePhotos[index]
+    fun getPhoto(index: Int): DronePhoto? {
+        return dronePhotos.value?.get(index)
     }
 
     fun updatePhoto(index: Int, bboxes: List<RectF>){
+        val dronePhoto = dronePhotos.value?.get(index)
         if (bboxes.isNotEmpty()){
-            dronePhotos[index].state = State.HasPedestrian
-            dronePhotos[index].bboxes = bboxes.toList()   // just create a copy
+            if (dronePhoto != null) {
+                dronePhoto.state = State.HasPedestrian
+                dronePhoto.bboxes = bboxes.toList()   // just create a copy
+            }
         }
         else{
-            dronePhotos[index].state = State.NoPedestrian
+            if (dronePhoto != null) {
+                dronePhoto.state = State.NoPedestrian
+            }
         }
     }
+
 
     @Throws(Exception::class)
     private fun loadImage(uriString: String): Bitmap {

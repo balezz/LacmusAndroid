@@ -1,11 +1,13 @@
 package ml.lacmus.lacmusandroid.ml
 
 import android.app.Notification
+import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.ContentResolver
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Color
 import android.graphics.RectF
 import android.net.Uri
 import android.os.Build
@@ -22,6 +24,7 @@ import java.lang.Exception
 
 class DetectionWorker(context: Context, parameters: WorkerParameters) :
     CoroutineWorker(context, parameters) {
+
     private val photoRepository = DronePhotoRepository.getInstance(context as LacmusApplication)
     private val detector = TFLiteObjectDetectionAPIModel.createInstance(context, MODEL_FILE)
 
@@ -32,12 +35,14 @@ class DetectionWorker(context: Context, parameters: WorkerParameters) :
     override suspend fun doWork(): Result {
         // Mark the Worker as important
         val progress = "Starting Download"
-//        setForeground(createForegroundInfo(progress))
-        for ((itemChanged, dronePhoto) in photoRepository.getDronePhotos().withIndex()) {
-            dronePhoto.bboxes = detect(dronePhoto.uri)
+        setForeground(createForegroundInfo(progress))
+        for ((itemChanged, dronePhoto) in photoRepository.getDronePhotos()?.withIndex()!!) {
+            val bboxes = detect(dronePhoto.uri)
+            photoRepository.updatePhoto(itemChanged, bboxes)
         }
         return Result.success()
     }
+
 
     private fun detect(imgUrl: String): List<RectF> {
         Log.d(TAG, "Start detection with worker: $imgUrl")
@@ -110,7 +115,7 @@ class DetectionWorker(context: Context, parameters: WorkerParameters) :
 
         // Create a Notification channel if necessary
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            createChannel()
+            createChannel(id, title)
         }
 
         val notification = NotificationCompat.Builder(applicationContext, id)
@@ -124,15 +129,24 @@ class DetectionWorker(context: Context, parameters: WorkerParameters) :
             .addAction(android.R.drawable.ic_delete, cancel, intent)
             .build()
 
-        return ForegroundInfo(Notification.DEFAULT_ALL, notification)
+        return ForegroundInfo(NOTIFICATION_ID, notification)
     }
+
 
     @RequiresApi(Build.VERSION_CODES.O)
-    private fun createChannel() {
+    private fun createChannel(channelId: String, channelName: String): String {
         // Create a Notification channel
+        val chan = NotificationChannel(channelId,
+            channelName, NotificationManager.IMPORTANCE_NONE)
+        chan.lightColor = Color.BLUE
+        chan.lockscreenVisibility = Notification.VISIBILITY_PRIVATE
+        notificationManager.createNotificationChannel(chan)
+        return channelId
     }
 
+
     companion object {
+        const val NOTIFICATION_ID = 42
         const val TAG = "DetectionWorker"
     }
 }

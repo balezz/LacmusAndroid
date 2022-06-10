@@ -33,10 +33,12 @@ class FullScreenPageFragment : Fragment() {
         _binding = FragmentScreenSlidePageBinding.inflate(inflater, container, false)
         val imagePosition = requireArguments().getInt(KEY_IMAGE_POSITION)
         val dronePhoto = sViewModel.getPhoto(imagePosition)
-        if (dronePhoto.state == State.HasPedestrian){
-            drawBoxes(dronePhoto)
-        } else {
-            binding.fullscreenContent.setImage(ImageSource.uri(dronePhoto.uri))
+        if (dronePhoto != null) {
+            if (dronePhoto.state == State.HasPedestrian){
+                drawBoxes(dronePhoto)
+            } else {
+                binding.fullscreenContent.setImage(ImageSource.uri(dronePhoto.uri))
+            }
         }
         return binding.root
     }

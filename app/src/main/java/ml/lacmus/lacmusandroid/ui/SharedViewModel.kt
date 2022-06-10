@@ -24,8 +24,7 @@ class SharedViewModel(private val application: LacmusApplication): ViewModel() {
     private var hideEmptyPhotosFlag = false
     private val photosRepo = application.dronePhotoRepository
     private val workManager = WorkManager.getInstance(application.applicationContext)
-    private val _photos = MutableLiveData<List<DronePhoto>>()
-    val photos : LiveData<List<DronePhoto>> = _photos
+    val photos : LiveData<List<DronePhoto>> = photosRepo.dronePhotos
     val updatedIndex = MutableLiveData(-1)
     var detectionIsDone = false
 
@@ -33,17 +32,10 @@ class SharedViewModel(private val application: LacmusApplication): ViewModel() {
         val photoList = uriList.map { DronePhoto(it.toString()) }
         photosRepo.setDronePhotos(photoList)
         Log.d(TAG, "Photo list size: ${photoList.size}")
-        _photos.postValue(photoList)                  // create copy
         detectWithWorker()
     }
 
     fun getPhoto(index: Int) = photosRepo.getPhoto(index)
-
-    private fun updatePhotoState(index: Int, bboxes: List<RectF>) {
-        photosRepo.updatePhoto(index, bboxes)
-        updatedIndex.postValue(index)
-        _photos.postValue(photosRepo.getDronePhotos())
-    }
 
     private fun detectWithWorker() {
         val detectionWorkRequest: WorkRequest =
@@ -55,14 +47,14 @@ class SharedViewModel(private val application: LacmusApplication): ViewModel() {
 
     fun showEmptyDronePhotos(){
         hideEmptyPhotosFlag = false
-        _photos.postValue(photosRepo.getDronePhotos())
+//        photos = LiveData<> photosRepo.getDronePhotos()
     }
 
     fun hideEmptyDronePhotos(){
         hideEmptyPhotosFlag = true
-        val hiddenPhotoList = photosRepo.getDronePhotos().filter {
+        val hiddenPhotoList = photosRepo.getDronePhotos()?.filter {
             it.state != State.NoPedestrian }
-        _photos.postValue(hiddenPhotoList)
+//        photos.postValue(hiddenPhotoList)
     }
 
 
