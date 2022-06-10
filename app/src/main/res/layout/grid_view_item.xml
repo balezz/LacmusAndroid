@@ -6,7 +6,7 @@
     <data>
         <variable
             name="photo"
-            type="ml.lacmus.app.data.DronePhoto" />
+            type="ml.lacmus.lacmusandroid.data.DronePhoto" />
     </data>
 
     <FrameLayout

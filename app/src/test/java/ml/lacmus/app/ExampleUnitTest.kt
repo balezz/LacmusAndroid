@@ -1,7 +1,7 @@
-package ml.lacmus.app
+package ml.lacmus.lacmusandroid
 
-import ml.lacmus.app.data.DronePhoto
-import ml.lacmus.app.data.State
+import ml.lacmus.lacmusandroid.data.DronePhoto
+import ml.lacmus.lacmusandroid.data.State
 import org.junit.Test
 
 import org.junit.Assert.*
