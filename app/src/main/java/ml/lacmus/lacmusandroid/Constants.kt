@@ -10,8 +10,8 @@ const val KEY_OUT_BOXES = "outBoxes"
 const val NUM_CROPS_W = 4
 const val NUM_CROPS_H = 3
 
-const val CROP_SIZE = 512
-const val MODEL_FILE = "effdetB3_v0.tflite"
+const val CROP_SIZE = 320
+const val MODEL_FILE = "effdetB0_v0.tflite"
 
 const val MODEL_INPUT_SIZE = CROP_SIZE
 const val CONFIDENCE_THRESHOLD = 0.3f

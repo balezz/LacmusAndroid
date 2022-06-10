@@ -50,7 +50,7 @@ class SharedViewModel(private val application: LacmusApplication): ViewModel() {
             OneTimeWorkRequestBuilder<DetectionWorker>()
                 .build()
         workManager.enqueue(detectionWorkRequest)
-        // listen detection result
+        // listen detection result here
     }
 
     fun showEmptyDronePhotos(){

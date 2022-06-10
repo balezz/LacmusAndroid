@@ -32,7 +32,7 @@ class DetectionWorker(context: Context, parameters: WorkerParameters) :
     override suspend fun doWork(): Result {
         // Mark the Worker as important
         val progress = "Starting Download"
-        setForeground(createForegroundInfo(progress))
+//        setForeground(createForegroundInfo(progress))
         for ((itemChanged, dronePhoto) in photoRepository.getDronePhotos().withIndex()) {
             dronePhoto.bboxes = detect(dronePhoto.uri)
         }
