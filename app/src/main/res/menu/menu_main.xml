@@ -1,7 +1,7 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    tools:context="ml.lacmus.app.MainActivity">
+    tools:context="ml.lacmus.lacmusandroid.ui.PhotoGridActivity">
     <item
         android:id="@+id/action_hide_empty"
         android:title="@string/action_hide_empty"

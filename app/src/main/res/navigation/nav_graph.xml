@@ -7,7 +7,7 @@
 
     <fragment
         android:id="@+id/GridFragment"
-        android:name="ml.lacmus.app.ui.PhotosGridFragment"
+        android:name="ml.lacmus.lacmusandroid.ui.PhotosGridFragment"
         android:label="@string/first_fragment_label"
         tools:layout="@layout/fragment_grid">
         <action
@@ -16,7 +16,7 @@
     </fragment>
     <activity
         android:id="@+id/screenSlidePagerActivity"
-        android:name="ml.lacmus.app.ui.ScreenSlidePagerActivity"
+        android:name="ml.lacmus.lacmusandroid.ui.FullScreenPagerActivity"
         android:label="ScreenSlidePagerActivity" >
         <argument
             android:name="imagePosition"

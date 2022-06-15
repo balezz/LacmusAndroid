@@ -1,4 +1,4 @@
-package ml.lacmus.app
+package ml.lacmus.lacmusandroid
 
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4
