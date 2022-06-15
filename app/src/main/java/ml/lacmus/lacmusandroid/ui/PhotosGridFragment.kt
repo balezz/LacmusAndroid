@@ -9,17 +9,19 @@ import android.view.*
 import androidx.fragment.app.Fragment
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.viewModels
+import androidx.work.Data
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkInfo
+import androidx.work.WorkManager
 import ml.lacmus.lacmusandroid.LacmusApplication
 import ml.lacmus.lacmusandroid.databinding.FragmentGridBinding
+import ml.lacmus.lacmusandroid.ml.DetectionWorker
 
-/**
- * A simple [Fragment] subclass as the default destination in the navigation.
- */
+
 class PhotosGridFragment : Fragment() {
 
     private var _binding: FragmentGridBinding? = null
     private val binding get() = _binding!!
-
     private val sViewModel: SharedViewModel by viewModels {
         SharedViewModel.SharedViewModelFactory(activity?.application!! as LacmusApplication)
     }
@@ -44,6 +46,7 @@ class PhotosGridFragment : Fragment() {
             adapter.submitList(it)
         }
         sViewModel.updatedIndex.observe(viewLifecycleOwner){
+
             adapter.notifyItemChanged(it)
         }
     }
@@ -81,11 +84,40 @@ class PhotosGridFragment : Fragment() {
             } else if (it.data != null) {
                 uriList.add(it.data!!)
             }
-            Log.d(TAG, "Get from gallery uri list: $uriList")
-            sViewModel.updatePhotosList(uriList)
+            val uriStrList = uriList.map { uri -> uri.toString() }
+            Log.d(TAG, "Get from gallery uri list: $uriStrList")
+            sViewModel.initPhotosList(uriStrList)
+            detectWithWorker(uriStrList)
         }
     }
 
+    private fun detectWithWorker(photoList: List<String>) {
+        val workManager = WorkManager.getInstance(requireActivity().applicationContext)
+        workManager.cancelAllWorkByTag(DetectionWorker.WORK_TAG)
+        sViewModel.detectionIsDone = false
+
+        val indexedMap = photoList.indices.map{ i -> i.toString() to photoList[i]}
+        val dataBuilder = Data.Builder()
+        for (pair in indexedMap) {
+            dataBuilder.putString(pair.first, pair.second)
+        }
+        val inputData = dataBuilder.build()
+
+        val detectionWorkRequest =
+            OneTimeWorkRequestBuilder<DetectionWorker>()
+                .setInputData(inputData)
+                .addTag(DetectionWorker.WORK_TAG)
+                .build()
+        workManager.enqueue(detectionWorkRequest)
+
+        // observe detection result
+        val workInfo = workManager.getWorkInfoByIdLiveData(detectionWorkRequest.id)
+        workInfo.observe(viewLifecycleOwner,  {
+            if (it.state == WorkInfo.State.SUCCEEDED){
+                sViewModel.detectionIsDone = true
+            }
+        })
+    }
 
     companion object {
         const val TAG = "PhotosGridFragment"

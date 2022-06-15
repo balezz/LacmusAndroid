@@ -13,5 +13,5 @@
     <string name="action_hide_empty">Hide empty images</string>
     <string name="notification_channel_id">NCHAN1</string>
     <string name="notification_title">Detecting images</string>
-    <string name="cancel_download">Cancel Detection</string>
+    <string name="cancel_detection">Cancel</string>
 </resources>

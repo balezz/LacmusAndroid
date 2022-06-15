@@ -32,6 +32,8 @@ import org.tensorflow.lite.task.vision.detector.Detection;
 import org.tensorflow.lite.task.vision.detector.ObjectDetector;
 import org.tensorflow.lite.task.vision.detector.ObjectDetector.ObjectDetectorOptions;
 
+import kotlin.jvm.Volatile;
+
 /**
  * Wrapper for frozen detection models trained using the Tensorflow Object Detection API: -
  * https://github.com/tensorflow/models/tree/master/research/object_detection where you can find the
@@ -52,6 +54,7 @@ import org.tensorflow.lite.task.vision.detector.ObjectDetector.ObjectDetectorOpt
 public class TFLiteObjectDetectionAPIModel implements Detector {
   private static final String TAG = "TFLiteObjectDetectionAPIModelWithTaskApi";
 
+  @Volatile
   private static TFLiteObjectDetectionAPIModel instance;
 
   private final MappedByteBuffer modelBuffer;
@@ -72,25 +75,8 @@ public class TFLiteObjectDetectionAPIModel implements Detector {
    * @param modelFilename The model file path relative to the assets folder
    *
    */
-  public static Detector createInstance(
-          final Context context,
-          final String modelFilename)
-          throws IOException {
-    if (instance == null){
-      instance = new TFLiteObjectDetectionAPIModel(context, modelFilename);
-    }
-    return instance;
-  }
 
-  public static Detector getInstance()
-          throws IOException {
-    if (instance == null){
-      throw new IOException("Detector not initialized!");
-    }
-    return instance;
-  }
-
-  private TFLiteObjectDetectionAPIModel(Context context, String modelFilename) throws IOException {
+  TFLiteObjectDetectionAPIModel(Context context, String modelFilename) throws IOException {
     modelBuffer = FileUtil.loadMappedFile(context, modelFilename);
     optionsBuilder = ObjectDetectorOptions
             .builder()

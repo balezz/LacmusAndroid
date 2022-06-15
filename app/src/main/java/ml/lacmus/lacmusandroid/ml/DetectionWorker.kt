@@ -18,39 +18,44 @@ import androidx.core.app.NotificationCompat
 import androidx.work.*
 import ml.lacmus.lacmusandroid.*
 import ml.lacmus.lacmusandroid.R
-import ml.lacmus.lacmusandroid.data.DronePhoto
-import ml.lacmus.lacmusandroid.data.DronePhotoRepository
+import ml.lacmus.lacmusandroid.ui.SharedViewModel
 import java.lang.Exception
 
 class DetectionWorker(context: Context, parameters: WorkerParameters) :
     CoroutineWorker(context, parameters) {
 
-    private val photoRepository = DronePhotoRepository.getInstance(context as LacmusApplication)
-    private val detector = TFLiteObjectDetectionAPIModel.createInstance(context, MODEL_FILE)
+    private val sharedViewModel = SharedViewModel.getInstance(context as LacmusApplication)
 
     private val notificationManager =
         context.getSystemService(Context.NOTIFICATION_SERVICE) as
                 NotificationManager
 
+    private val channelId = applicationContext.getString(R.string.notification_channel_id)
+    private val title = applicationContext.getString(R.string.notification_title)
+    private val cancel = applicationContext.getString(R.string.cancel_detection)
+
     override suspend fun doWork(): Result {
-        // Mark the Worker as important
-        val progress = "Starting Download"
-        setForeground(createForegroundInfo(progress))
-        for ((itemChanged, dronePhoto) in photoRepository.getDronePhotos()?.withIndex()!!) {
-            val bboxes = detect(dronePhoto.uri)
-            photoRepository.updatePhoto(itemChanged, bboxes)
+        val detector = TFLiteObjectDetectionAPIModel(applicationContext, MODEL_FILE)
+        val items = inputData.keyValueMap.toSortedMap(compareBy { it.toInt() })
+        val itemsCount = items.size
+        val fi = createForegroundInfo("Start")
+        setForeground(fi)
+        for ((key, value) in items){
+            val progress = "$key / $itemsCount"
+            notificationManager.notify(NOTIFICATION_ID, createNotification(progress))
+
+            val bboxes = detect(value.toString(), detector)
+            sharedViewModel.updatePhotoDetection(key.toInt(), bboxes)
+            if (isStopped) break
         }
         return Result.success()
     }
 
-
-    private fun detect(imgUrl: String): List<RectF> {
+    private fun detect(imgUrl: String, detector: Detector): List<RectF> {
         Log.d(TAG, "Start detection with worker: $imgUrl")
-        val bitmap = loadImage(imgUrl)
+        val bitmap = loadBitmap(imgUrl)
         return detectBoxes(bitmap, detector)
-
     }
-
 
     private fun detectBoxes(bigBitmap: Bitmap, detector: Detector): List<RectF> {
         Trace.beginSection("Detect boxes on full image")
@@ -87,9 +92,8 @@ class DetectionWorker(context: Context, parameters: WorkerParameters) :
         return bboxes
     }
 
-
     @Throws(Exception::class)
-    private fun loadImage(uriString: String): Bitmap {
+    private fun loadBitmap(uriString: String): Bitmap {
         var bitmap: Bitmap = Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888)
         val imageUri = Uri.parse(uriString)
         val contentResolver: ContentResolver = applicationContext.contentResolver
@@ -102,23 +106,20 @@ class DetectionWorker(context: Context, parameters: WorkerParameters) :
         return bitmap
     }
 
-
-    // Creates an instance of ForegroundInfo which can be used to update the
-    // ongoing notification.
     private fun createForegroundInfo(progress: String): ForegroundInfo {
-        val id = applicationContext.getString(R.string.notification_channel_id)
-        val title = applicationContext.getString(R.string.notification_title)
-        val cancel = applicationContext.getString(R.string.cancel_download)
-        // This PendingIntent can be used to cancel the worker
-        val intent = WorkManager.getInstance(applicationContext)
-            .createCancelPendingIntent(getId())
-
-        // Create a Notification channel if necessary
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            createChannel(id, title)
+            createChannel(channelId, title)
         }
+        val notification = createNotification(progress)
+        return ForegroundInfo(NOTIFICATION_ID, notification)
+    }
 
-        val notification = NotificationCompat.Builder(applicationContext, id)
+    private fun createNotification(progress: String): Notification {
+        // This PendingIntent can be used to cancel the worker
+        val cancelIntent = WorkManager.getInstance(applicationContext)
+            .createCancelPendingIntent(id)
+
+        return NotificationCompat.Builder(applicationContext, channelId)
             .setContentTitle(title)
             .setTicker(title)
             .setContentText(progress)
@@ -126,13 +127,10 @@ class DetectionWorker(context: Context, parameters: WorkerParameters) :
             .setOngoing(true)
             // Add the cancel action to the notification which can
             // be used to cancel the worker
-            .addAction(android.R.drawable.ic_delete, cancel, intent)
+            .addAction(android.R.drawable.ic_dialog_alert, cancel, cancelIntent)
             .build()
 
-        return ForegroundInfo(NOTIFICATION_ID, notification)
     }
-
-
     @RequiresApi(Build.VERSION_CODES.O)
     private fun createChannel(channelId: String, channelName: String): String {
         // Create a Notification channel
@@ -148,5 +146,7 @@ class DetectionWorker(context: Context, parameters: WorkerParameters) :
     companion object {
         const val NOTIFICATION_ID = 42
         const val TAG = "DetectionWorker"
+        const val WORK_TAG = "DetectionWorker"
+
     }
 }
