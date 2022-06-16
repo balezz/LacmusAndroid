@@ -1,8 +1,8 @@
 package ml.lacmus.lacmusandroid
 
 import android.app.Application
-import ml.lacmus.lacmusandroid.data.DronePhotoRepository
+import ml.lacmus.lacmusandroid.data.DronePhotoCacheRepository
 
 class LacmusApplication : Application() {
-    val dronePhotoRepository = DronePhotoRepository.getInstance(this)
+    val dronePhotoRepository = DronePhotoCacheRepository.getInstance()
 }

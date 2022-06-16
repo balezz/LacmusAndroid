@@ -2,42 +2,58 @@ package ml.lacmus.lacmusandroid.ui
 
 import android.graphics.RectF
 import androidx.lifecycle.*
+import com.davemorrissey.labs.subscaleview.ImageSource
 import ml.lacmus.lacmusandroid.*
 import ml.lacmus.lacmusandroid.data.DronePhoto
 import ml.lacmus.lacmusandroid.data.State
+import ml.lacmus.lacmusandroid.domain.*
 import java.lang.IllegalArgumentException
+import java.util.*
 
 class SharedViewModel(private val application: LacmusApplication): ViewModel() {
     private var hideEmptyPhotosFlag = false
-    private val photosRepo = application.dronePhotoRepository
+
+    private val updateDronePhotoUseCase = UpdateDronePhotoUseCase()
+    private val getAllDronePhotosUseCase = GetAllDronePhotosUseCase()
+    private val setNewDronePhotosUseCase = SetNewDronePhotosUseCase()
+    private val startDetectionUseCase = StartDetectionUseCase(application.applicationContext)
+    private val getImageSourceUseCase = GetImageSourceUseCase(application.applicationContext)
 
     val photos = MutableLiveData<List<DronePhoto>>()
     val updatedIndex = MutableLiveData(-1)
     var detectionIsDone = false
 
-    fun initPhotosList(uriList: List<String>) {
+    fun setNewDronePhotos(uriList: List<String>) {
         val photoList = uriList.map { DronePhoto(it) }
-        photosRepo.setDronePhotos(photoList)
+        setNewDronePhotosUseCase.execute(photoList)
         photos.postValue(photoList)
     }
 
-    fun getPhoto(index: Int) = photosRepo.getPhoto(index)
+    fun getImageSource(index: Int): ImageSource {
+        val dronePhoto = photos.value?.get(index)!!
+        return getImageSourceUseCase.execute(dronePhoto)
+    }
 
     fun updatePhotoDetection(itemChanged: Int, bboxes: List<RectF>){
-        photosRepo.updatePhotoDetection(itemChanged, bboxes)
+        updateDronePhotoUseCase.execute(itemChanged, bboxes)
         updatedIndex.postValue(itemChanged)
     }
 
     fun showEmptyDronePhotos(){
         hideEmptyPhotosFlag = false
-        photos.postValue(photosRepo.getDronePhotos())
+        photos.postValue(getAllDronePhotosUseCase.execute())
     }
 
     fun hideEmptyDronePhotos(){
         hideEmptyPhotosFlag = true
-        val hiddenPhotoList = photosRepo.getDronePhotos()?.filter {
+        val hiddenPhotoList = getAllDronePhotosUseCase.execute().filter {
             it.state != State.NoPedestrian }
         photos.postValue(hiddenPhotoList)
+    }
+
+    fun startDetectionWithWorker(uriStrList: List<String>): UUID {
+        detectionIsDone = false
+        return startDetectionUseCase.execute(uriStrList)
     }
 
 
