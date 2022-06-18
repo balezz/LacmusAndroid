@@ -24,16 +24,13 @@ class PhotosGridAdapter : ListAdapter<DronePhoto,
             binding.photo = dronePhoto
             binding.executePendingBindings()
             if (dronePhoto.state == State.Unrecognized) {
-//              binding.droneImage.setColorFilter(Color.GRAY, PorterDuff.Mode.LIGHTEN)
                 binding.imageFrame.background.setTint(Color.WHITE)
             }
             if (dronePhoto.state == State.NoPedestrian) {
-//              binding.droneImage.setColorFilter(Color.GRAY, PorterDuff.Mode.LIGHTEN)
                 binding.imageFrame.background.setTint(Color.GREEN)
             }
             if (dronePhoto.state == State.HasPedestrian) {
                 binding.imageFrame.background.setTint(Color.RED)
-//                binding.droneImage.setColorFilter(Color.RED, PorterDuff.Mode.LIGHTEN)
             }
         }
     }
