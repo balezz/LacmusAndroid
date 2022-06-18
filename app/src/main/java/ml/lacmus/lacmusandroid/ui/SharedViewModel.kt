@@ -1,5 +1,6 @@
 package ml.lacmus.lacmusandroid.ui
 
+import android.content.Intent
 import android.graphics.RectF
 import androidx.lifecycle.*
 import com.davemorrissey.labs.subscaleview.ImageSource
@@ -18,6 +19,8 @@ class SharedViewModel(private val application: LacmusApplication): ViewModel() {
     private val setNewDronePhotosUseCase = SetNewDronePhotosUseCase()
     private val startDetectionUseCase = StartDetectionUseCase(application.applicationContext)
     private val getImageSourceUseCase = GetImageSourceUseCase(application.applicationContext)
+    private val getSharePhotoIntentUseCase = GetSharePhotoIntentUseCase(
+        application.applicationContext)
 
     val photos = MutableLiveData<List<DronePhoto>>()
     val updatedIndex = MutableLiveData(-1)
@@ -54,6 +57,11 @@ class SharedViewModel(private val application: LacmusApplication): ViewModel() {
     fun startDetectionWithWorker(uriStrList: List<String>): UUID {
         detectionIsDone = false
         return startDetectionUseCase.execute(uriStrList)
+    }
+
+    fun shareImage(imagePosition: Int): Intent {
+        val dronePhoto = photos.value!![imagePosition]
+        return getSharePhotoIntentUseCase.execute(dronePhoto)
     }
 
 

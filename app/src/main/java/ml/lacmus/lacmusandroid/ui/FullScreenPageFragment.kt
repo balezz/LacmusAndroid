@@ -28,6 +28,11 @@ class FullScreenPageFragment : Fragment() {
         val imagePosition = requireArguments().getInt(KEY_IMAGE_POSITION)
         val imageSource = sViewModel.getImageSource(imagePosition)
         binding.fullscreenContent.setImage(imageSource)
+
+        binding.photoShareButton.setOnClickListener {
+            val intent = sViewModel.shareImage(imagePosition)
+            startActivity(intent)
+        }
         return binding.root
     }
 
